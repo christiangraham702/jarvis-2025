@@ -94,7 +94,6 @@ class CanvasAPI:
                     'course_code': course['course_code'],
                     'enrollment_term_id': course['enrollment_term_id'],
                     'time_zone': course['time_zone'],
-                    'calendar': course.get('calendar', {}).get('ics', None)
                 }
                 filtered_courses.append(relevant_info)
         return filtered_courses
@@ -154,6 +153,33 @@ class CanvasAPI:
 
         return all_assignments
 
+    def process_assignments(self, assignments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Process and clean assignment data to extract relevant information.
+
+        :param assignments: List of assignments returned by the API.
+        :return: Processed list of assignments with relevant fields.
+        """
+        processed_assignments = []
+        for assignment in assignments:
+            relevant_info = {
+                'id': assignment['id'],
+                'name': assignment['name'],
+                'description': assignment.get('description', 'No description available'),
+                'due_at': assignment.get('due_at'),
+                'points_possible': assignment.get('points_possible'),
+                'grading_type': assignment.get('grading_type'),
+                'html_url': assignment.get('html_url'),
+                'submission': {
+                    'id': assignment.get('submission', {}).get('id'),
+                    'score': assignment.get('submission', {}).get('score'),
+                    'submitted_at': assignment.get('submission', {}).get('submitted_at'),
+                    'workflow_state': assignment.get('submission', {}).get('workflow_state')
+                }
+            }
+            processed_assignments.append(relevant_info)
+        return processed_assignments
+
     def save_courses_to_json(self, courses: List[Dict[str, Any]], filename: str = "current_courses.json"):
         """
         Save filtered courses to a JSON file.
@@ -171,4 +197,5 @@ class CanvasAPI:
 # current_courses = canvas.filter_courses_by_code(all_courses, current_course_codes)
 # canvas.save_courses_to_json(current_courses)
 # assignments = canvas.list_course_assignments(course_id=523306, include=["submission", "all_dates"], bucket="upcoming")
-# print(assignments)
+# processed_assignments = canvas.process_assignments(assignments)
+# print(processed_assignments)
